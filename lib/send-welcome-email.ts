@@ -53,7 +53,9 @@ function createTransporter() {
  */
 function generateWelcomeEmailHTML(data: ContactData): string {
   const currentYear = new Date().getFullYear();
-  const logoUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://ahorrometrics.es"}/logo.png`;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://ahorrometrics.es";
+  const logoUrl = `${baseUrl}/logo.png`;
+  const bannerUrl = `${baseUrl}/email-banner.png`;
 
   return `
 <!DOCTYPE html>
@@ -97,7 +99,7 @@ function generateWelcomeEmailHTML(data: ContactData): string {
 
   <!-- Preheader (hidden text shown in email previews) -->
   <div style="display: none; font-size: 1px; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
-    Hemos recibido tu solicitud correctamente. Un experto de AhorroMetrics se pondrá en contacto contigo en breve.
+    Hemos recibido tu solicitud correctamente. Un experto de AhorroMetrics se pondra en contacto contigo en breve.
   </div>
 
   <!-- Wrapper -->
@@ -108,7 +110,7 @@ function generateWelcomeEmailHTML(data: ContactData): string {
         <!-- Email Container -->
         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" class="email-container" style="margin: auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);">
 
-          <!-- ═══════════════ HEADER WITH GRADIENT ═══════════════ -->
+          <!-- HEADER WITH GRADIENT -->
           <tr>
             <td style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #818cf8 100%); padding: 40px 48px 32px; text-align: center;" class="mobile-padding">
               <!-- Logo -->
@@ -123,7 +125,7 @@ function generateWelcomeEmailHTML(data: ContactData): string {
                     <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                       <tr>
                         <td style="background-color: rgba(255,255,255,0.2); border-radius: 50px; padding: 6px 16px;">
-                          <p style="margin: 0; font-size: 12px; font-weight: 600; color: #ffffff; letter-spacing: 1.5px; text-transform: uppercase;">Confirmación de Registro</p>
+                          <p style="margin: 0; font-size: 12px; font-weight: 600; color: #ffffff; letter-spacing: 1.5px; text-transform: uppercase;">Confirmacion de Registro</p>
                         </td>
                       </tr>
                     </table>
@@ -133,7 +135,7 @@ function generateWelcomeEmailHTML(data: ContactData): string {
             </td>
           </tr>
 
-          <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+          <!-- MAIN CONTENT -->
           <tr>
             <td style="padding: 48px 48px 16px;" class="mobile-padding">
               
@@ -152,14 +154,14 @@ function generateWelcomeEmailHTML(data: ContactData): string {
                     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                       <tr>
                         <td width="48" valign="top" style="padding-right: 16px;">
-                          <div style="width: 44px; height: 44px; background-color: #dcfce7; border-radius: 50%; text-align: center; line-height: 44px; font-size: 22px; color: #166534; font-weight: bold;">
-                            &check;
+                          <div style="width: 44px; height: 44px; background-color: #dcfce7; border-radius: 50%; text-align: center; line-height: 44px; font-size: 24px; color: #166534; font-weight: bold;">
+                            &#10004;
                           </div>
                         </td>
                         <td valign="top">
-                          <p style="margin: 0 0 4px; font-size: 16px; font-weight: 700; color: #166534;">Solicitud registrada con éxito</p>
+                          <p style="margin: 0 0 4px; font-size: 16px; font-weight: 700; color: #166534;">Solicitud registrada con exito</p>
                           <p style="margin: 0; font-size: 14px; color: #15803d; line-height: 1.5;">
-                            Tu consulta ha quedado registrada en nuestro sistema. Un experto en optimización de gastos revisará tu caso y se pondrá en contacto contigo <strong>en las próximas 24-48 horas</strong>.
+                            Tu consulta ha quedado registrada en nuestro sistema. Un experto en optimizacion de gastos revisara tu caso y se pondra en contacto contigo <strong>en las proximas 24-48 horas</strong>.
                           </p>
                         </td>
                       </tr>
@@ -182,7 +184,7 @@ function generateWelcomeEmailHTML(data: ContactData): string {
                   <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; font-size: 14px; color: #1e293b;">${data.email}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 14px 20px; background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; font-size: 13px; font-weight: 600; color: #64748b;">Teléfono</td>
+                  <td style="padding: 14px 20px; background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; font-size: 13px; font-weight: 600; color: #64748b;">Telefono</td>
                   <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; font-size: 14px; color: #1e293b;">${data.telefono}</td>
                 </tr>
                 ${data.empresa ? `
@@ -201,11 +203,18 @@ function generateWelcomeEmailHTML(data: ContactData): string {
             </td>
           </tr>
 
-          <!-- ═══════════════ WHAT'S NEXT SECTION ═══════════════ -->
+          <!-- BANNER IMAGE -->
+          <tr>
+            <td style="padding: 0 48px 32px;" class="mobile-padding">
+              <img src="${bannerUrl}" alt="AhorroMetrics - Optimizacion de gastos empresariales" width="504" style="width: 100%; max-width: 504px; height: auto; display: block; border-radius: 12px;" />
+            </td>
+          </tr>
+
+          <!-- WHAT'S NEXT SECTION -->
           <tr>
             <td style="padding: 0 48px 40px;" class="mobile-padding">
               <p style="margin: 0 0 20px; font-size: 14px; font-weight: 600; color: #475569; text-transform: uppercase; letter-spacing: 1px;">
-                ¿Qué sucederá a continuación?
+                Proximos pasos
               </p>
 
               <!-- Step 1 -->
@@ -215,8 +224,8 @@ function generateWelcomeEmailHTML(data: ContactData): string {
                     <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #4f46e5, #6366f1); border-radius: 50%; text-align: center; line-height: 36px; color: #ffffff; font-size: 14px; font-weight: 700;">1</div>
                   </td>
                   <td valign="top" style="padding-top: 6px;">
-                    <p style="margin: 0 0 2px; font-size: 15px; font-weight: 600; color: #1e293b;">Análisis preliminar</p>
-                    <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">Revisaremos los datos que nos has proporcionado para preparar una evaluación inicial.</p>
+                    <p style="margin: 0 0 2px; font-size: 15px; font-weight: 600; color: #1e293b;">Analisis preliminar</p>
+                    <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">Revisaremos los datos que nos has proporcionado para preparar una evaluacion inicial.</p>
                   </td>
                 </tr>
               </table>
@@ -229,7 +238,7 @@ function generateWelcomeEmailHTML(data: ContactData): string {
                   </td>
                   <td valign="top" style="padding-top: 6px;">
                     <p style="margin: 0 0 2px; font-size: 15px; font-weight: 600; color: #1e293b;">Contacto personalizado</p>
-                    <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">Un experto se pondrá en contacto contigo para conocer tus necesidades específicas.</p>
+                    <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">Un experto se pondra en contacto contigo para conocer tus necesidades especificas.</p>
                   </td>
                 </tr>
               </table>
@@ -249,20 +258,20 @@ function generateWelcomeEmailHTML(data: ContactData): string {
             </td>
           </tr>
 
-          <!-- ═══════════════ CTA BUTTON ═══════════════ -->
+          <!-- CTA BUTTON -->
           <tr>
             <td style="padding: 0 48px 40px;" class="mobile-padding">
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                 <tr>
                   <td style="background-color: #f8fafc; border-radius: 12px; padding: 28px; text-align: center;">
                     <p style="margin: 0 0 16px; font-size: 15px; color: #475569; line-height: 1.5;">
-                      ¿Quieres conocer más sobre cómo reducimos los gastos de tu empresa?
+                      Quieres conocer mas sobre como reducimos los gastos de tu empresa?
                     </p>
                     <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
                       <tr>
                         <td style="background: linear-gradient(135deg, #4f46e5, #6366f1); border-radius: 50px; padding: 14px 36px;">
-                          <a href="${process.env.NEXT_PUBLIC_BASE_URL || "https://ahorrometrics.es"}/como-funciona" target="_blank" style="font-size: 14px; font-weight: 700; color: #ffffff; text-decoration: none; display: inline-block;">
-                            Descubre Cómo Funciona →
+                          <a href="${baseUrl}/como-funciona" target="_blank" style="font-size: 14px; font-weight: 700; color: #ffffff; text-decoration: none; display: inline-block;">
+                            Descubre Como Funciona
                           </a>
                         </td>
                       </tr>
@@ -273,14 +282,14 @@ function generateWelcomeEmailHTML(data: ContactData): string {
             </td>
           </tr>
 
-          <!-- ═══════════════ DIVIDER ═══════════════ -->
+          <!-- DIVIDER -->
           <tr>
             <td style="padding: 0 48px;" class="mobile-padding">
               <div style="border-top: 1px solid #e2e8f0;"></div>
             </td>
           </tr>
 
-          <!-- ═══════════════ FOOTER ═══════════════ -->
+          <!-- FOOTER -->
           <tr>
             <td style="padding: 32px 48px 40px; text-align: center;" class="mobile-padding">
               <p style="margin: 0 0 8px; font-size: 14px; font-weight: 700; color: #1e293b;">AhorroMetrics</p>
@@ -290,15 +299,15 @@ function generateWelcomeEmailHTML(data: ContactData): string {
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin-bottom: 16px;">
                 <tr>
                   <td style="padding: 0 8px;">
-                    <a href="${process.env.NEXT_PUBLIC_BASE_URL || "https://ahorrometrics.es"}" style="font-size: 12px; color: #4f46e5; text-decoration: none; font-weight: 500;">Sitio web</a>
+                    <a href="${baseUrl}" style="font-size: 12px; color: #4f46e5; text-decoration: none; font-weight: 500;">Sitio web</a>
                   </td>
                   <td style="color: #cbd5e1; font-size: 12px;">|</td>
                   <td style="padding: 0 8px;">
-                    <a href="${process.env.NEXT_PUBLIC_BASE_URL || "https://ahorrometrics.es"}/servicios" style="font-size: 12px; color: #4f46e5; text-decoration: none; font-weight: 500;">Servicios</a>
+                    <a href="${baseUrl}/servicios" style="font-size: 12px; color: #4f46e5; text-decoration: none; font-weight: 500;">Servicios</a>
                   </td>
                   <td style="color: #cbd5e1; font-size: 12px;">|</td>
                   <td style="padding: 0 8px;">
-                    <a href="${process.env.NEXT_PUBLIC_BASE_URL || "https://ahorrometrics.es"}/politica-privacidad" style="font-size: 12px; color: #4f46e5; text-decoration: none; font-weight: 500;">Privacidad</a>
+                    <a href="${baseUrl}/politica-privacidad" style="font-size: 12px; color: #4f46e5; text-decoration: none; font-weight: 500;">Privacidad</a>
                   </td>
                 </tr>
               </table>
@@ -307,7 +316,7 @@ function generateWelcomeEmailHTML(data: ContactData): string {
                 contacto@ahorrometrics.es
               </p>
               <p style="margin: 0; font-size: 11px; color: #cbd5e1;">
-                © ${currentYear} AhorroMetrics. Todos los derechos reservados.
+                ${currentYear} AhorroMetrics. Todos los derechos reservados.
               </p>
             </td>
           </tr>
@@ -327,6 +336,7 @@ function generateWelcomeEmailHTML(data: ContactData): string {
 /**
  * Sends a professional welcome/confirmation email to a new contact.
  * This is called automatically when a new contact form is submitted.
+ * Sends from contacto@ahorrometrics.es using Gmail alias configuration.
  * Includes anti-spam best practices: proper headers, Reply-To, List-Unsubscribe.
  */
 export async function sendWelcomeEmail(data: ContactData): Promise<void> {
@@ -343,15 +353,18 @@ export async function sendWelcomeEmail(data: ContactData): Promise<void> {
     throw verifyError;
   }
 
-  const senderAddress = process.env.SMTP_USER || "contacto@ahorrometrics.es";
+  // Use the business domain email as sender (Gmail alias configured)
+  const senderAddress = process.env.SMTP_FROM || "contacto@ahorrometrics.es";
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://ahorrometrics.es";
 
   const mailOptions = {
-    // Use the actual SMTP account as the sender (avoids domain mismatch spam flags)
+    // Send from the business email (alias configured in Gmail)
     from: {
       name: "AhorroMetrics",
       address: senderAddress,
     },
+    // The actual SMTP account sends on behalf
+    sender: process.env.SMTP_USER,
     to: data.email,
     // Reply-To directs responses to the business email
     replyTo: {
@@ -369,8 +382,6 @@ export async function sendWelcomeEmail(data: ContactData): Promise<void> {
       "Precedence": "bulk",
       // X-Mailer identifies the sending application
       "X-Mailer": "AhorroMetrics Mailer",
-      // MIME version
-      "MIME-Version": "1.0",
     },
     // Priority: normal (high priority triggers spam filters)
     priority: "normal" as const,
@@ -389,7 +400,7 @@ DATOS DE TU SOLICITUD:
 ${data.empresa ? `- Empresa: ${data.empresa}` : ""}
 ${data.mensaje ? `- Mensaje: ${data.mensaje}` : ""}
 
-QUE SUCEDERA A CONTINUACION:
+PROXIMOS PASOS:
 1. Analisis preliminar - Revisaremos los datos que nos has proporcionado.
 2. Contacto personalizado - Un experto se pondra en contacto contigo.
 3. Propuesta de ahorro - Te presentaremos un informe detallado.
@@ -398,7 +409,7 @@ Visita nuestro sitio: ${baseUrl}
 
 AhorroMetrics - Decisiones Inteligentes, Resultados Medibles
 Si no ahorras, no cobramos.
-${senderAddress}
+contacto@ahorrometrics.es
 ${new Date().getFullYear()} AhorroMetrics. Todos los derechos reservados.
 
 Si no deseas recibir mas correos, responde a este email con el asunto "Unsubscribe".`.trim(),
@@ -407,4 +418,3 @@ Si no deseas recibir mas correos, responde a este email con el asunto "Unsubscri
   const info = await transporter.sendMail(mailOptions);
   console.log(`📧 Email sent successfully! Message ID: ${info.messageId}`);
 }
-
