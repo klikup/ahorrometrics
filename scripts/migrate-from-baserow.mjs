@@ -6,8 +6,42 @@
  * 
  * Make sure to:
  * 1. Have PostgreSQL running with DATABASE_URL set in .env
- * 2. Have run `npx prisma migrate dev` first to create the tables
+ * 2. Have run `npx prisma db push` first to create the tables
  */
+
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { readFileSync } from "fs";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+
+// Load .env manually since this is a standalone script
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const envPath = resolve(__dirname, "..", ".env");
+let DATABASE_URL = process.env.DATABASE_URL;
+
+try {
+  const envContent = readFileSync(envPath, "utf-8");
+  const match = envContent.match(/DATABASE_URL="?([^"\n]+)"?/);
+  if (match) DATABASE_URL = match[1];
+} catch {
+  // .env not found, try .env.local
+  try {
+    const envLocalPath = resolve(__dirname, "..", ".env.local");
+    const envContent = readFileSync(envLocalPath, "utf-8");
+    const match = envContent.match(/DATABASE_URL="?([^"\n]+)"?/);
+    if (match) DATABASE_URL = match[1];
+  } catch {
+    // Use environment variable
+  }
+}
+
+if (!DATABASE_URL) {
+  console.error("❌ DATABASE_URL not found. Set it in .env or .env.local");
+  process.exit(1);
+}
+
+console.log(`📦 Using database: ${DATABASE_URL.replace(/:[^@]+@/, ':****@')}`);
 
 const BASEROW_TOKEN = "zqTOMqUCdocw6zF1K14KYGz4w1UPbEDS";
 const CONTACTS_TABLE = "963283";
@@ -51,9 +85,9 @@ async function main() {
   const auditorias = await fetchAllFromBaserow(AUDITORIAS_TABLE);
   console.log(`   Found ${auditorias.length} auditorias\n`);
 
-  // 3. Import Prisma dynamically
-  const { PrismaClient } = await import("@prisma/client");
-  const prisma = new PrismaClient();
+  // 3. Create Prisma client with PG adapter (required by Prisma 7)
+  const adapter = new PrismaPg({ connectionString: DATABASE_URL });
+  const prisma = new PrismaClient({ adapter });
 
   try {
     // 4. Insert contacts
