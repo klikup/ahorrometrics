@@ -9,6 +9,11 @@ async function isAuth() {
   return c.get("am_admin_session")?.value === SESSION_TOKEN;
 }
 
+// Serialize BigInt for JSON
+function serialize(obj: unknown): unknown {
+  return JSON.parse(JSON.stringify(obj, (_, v) => typeof v === "bigint" ? Number(v) : v));
+}
+
 // POST - Save businesses from scraper results
 export async function POST(request: NextRequest) {
   if (!(await isAuth()))
@@ -16,57 +21,46 @@ export async function POST(request: NextRequest) {
 
   try {
     const { businesses, localidad } = await request.json();
+    if (!Array.isArray(businesses) || businesses.length === 0)
+      return NextResponse.json({ error: "No hay empresas" }, { status: 400 });
 
-    if (!Array.isArray(businesses) || businesses.length === 0) {
-      return NextResponse.json({ error: "No hay empresas para guardar" }, { status: 400 });
-    }
-
-    let saved = 0;
-    let skipped = 0;
+    let saved = 0, skipped = 0;
+    const errors: string[] = [];
 
     for (const b of businesses) {
       try {
         await prisma.scrapedBusiness.upsert({
-          where: {
-            osmId_localidad: { osmId: b.id, localidad: localidad || "" },
-          },
+          where: { osmId_localidad: { osmId: BigInt(b.id), localidad: localidad || "" } },
           create: {
-            osmId: b.id,
-            nombre: b.nombre,
-            tipo: b.tipo || "",
-            direccion: b.direccion || "",
-            telefono: b.telefono || "",
-            email: b.email || "",
-            web: b.web || "",
-            lat: b.lat || 0,
-            lon: b.lon || 0,
-            localidad: localidad || "",
-            estado: "nuevo",
+            osmId: BigInt(b.id), nombre: b.nombre || "", tipo: b.tipo || "",
+            direccion: b.direccion || "", telefono: b.telefono || "",
+            email: b.email || "", web: b.web || "",
+            lat: b.lat || 0, lon: b.lon || 0, localidad: localidad || "",
           },
           update: {
-            // Don't overwrite estado or notas if already saved
-            nombre: b.nombre,
-            tipo: b.tipo || "",
-            direccion: b.direccion || "",
-            telefono: b.telefono || "",
-            email: b.email || "",
-            web: b.web || "",
+            nombre: b.nombre || "", tipo: b.tipo || "",
+            direccion: b.direccion || "", telefono: b.telefono || "",
+            email: b.email || "", web: b.web || "",
           },
         });
         saved++;
-      } catch {
+      } catch (e) {
         skipped++;
+        if (errors.length < 3) errors.push(`${b.nombre}: ${e instanceof Error ? e.message : "error"}`);
       }
     }
 
-    return NextResponse.json({ saved, skipped });
+    console.log(`[Businesses] Saved: ${saved}, Skipped: ${skipped}`);
+    if (errors.length > 0) console.error("[Businesses] Errors:", errors);
+
+    return NextResponse.json({ saved, skipped, errors: errors.length > 0 ? errors : undefined });
   } catch (error) {
     console.error("Error saving businesses:", error);
-    return NextResponse.json({ error: "Error al guardar" }, { status: 500 });
+    return NextResponse.json({ error: "Error al guardar: " + (error instanceof Error ? error.message : "") }, { status: 500 });
   }
 }
 
-// GET - Get saved businesses with their status
+// GET - Get saved businesses
 export async function GET(request: NextRequest) {
   if (!(await isAuth()))
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
@@ -79,28 +73,15 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({
-      results: businesses.map((b) => ({
-        id: b.id,
-        osmId: b.osmId,
-        nombre: b.nombre,
-        tipo: b.tipo,
-        direccion: b.direccion,
-        telefono: b.telefono,
-        email: b.email,
-        web: b.web,
-        lat: b.lat,
-        lon: b.lon,
-        localidad: b.localidad,
-        estado: b.estado,
-        emailEnviado: b.emailEnviado,
-        fechaEmail: b.fechaEmail?.toISOString() || null,
-        notas: b.notas,
-      })),
-    });
+    return NextResponse.json({ results: serialize(businesses.map(b => ({
+      id: b.id, osmId: Number(b.osmId), nombre: b.nombre, tipo: b.tipo,
+      direccion: b.direccion, telefono: b.telefono, email: b.email, web: b.web,
+      lat: b.lat, lon: b.lon, localidad: b.localidad, estado: b.estado,
+      emailEnviado: b.emailEnviado, fechaEmail: b.fechaEmail?.toISOString() || null,
+    }))) });
   } catch (error) {
     console.error("Error fetching businesses:", error);
-    return NextResponse.json({ error: "Error al obtener datos" }, { status: 500 });
+    return NextResponse.json({ error: "Error: " + (error instanceof Error ? error.message : "") }, { status: 500 });
   }
 }
 
@@ -111,19 +92,14 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const { id, estado, notas } = await request.json();
+    const data: Record<string, unknown> = {};
+    if (estado !== undefined) data.estado = estado;
+    if (notas !== undefined) data.notas = notas;
 
-    const updateData: Record<string, unknown> = {};
-    if (estado !== undefined) updateData.estado = estado;
-    if (notas !== undefined) updateData.notas = notas;
-
-    const updated = await prisma.scrapedBusiness.update({
-      where: { id },
-      data: updateData,
-    });
-
-    return NextResponse.json({ success: true, estado: updated.estado });
+    await prisma.scrapedBusiness.update({ where: { id }, data });
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error updating business:", error);
-    return NextResponse.json({ error: "Error al actualizar" }, { status: 500 });
+    console.error("Error updating:", error);
+    return NextResponse.json({ error: "Error" }, { status: 500 });
   }
 }
