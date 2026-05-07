@@ -188,7 +188,7 @@ export default function Home() {
                 </div>
                 <div>
                   <p className="text-xs text-indigo-200 uppercase tracking-wider font-semibold">Email corporativo</p>
-                  <p className="font-semibold text-white text-lg">contacto@ahorrometrics.com</p>
+                  <p className="font-semibold text-white text-lg">contacto@ahorrometrics.es</p>
                 </div>
               </div>
             </motion.div>

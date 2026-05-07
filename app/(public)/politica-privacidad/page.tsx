@@ -46,7 +46,7 @@ export default function PoliticaPrivacidadPage() {
               <li>Solicitar la portabilidad de los datos.</li>
             </ul>
             <p className="mt-4">
-              Podrá ejercer estos derechos dirigiéndose a nuestro correo electrónico: contacto@ahorrometrics.com
+              Podrá ejercer estos derechos dirigiéndose a nuestro correo electrónico: contacto@ahorrometrics.es
             </p>
           </section>
         </div>

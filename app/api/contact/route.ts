@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { sendWelcomeEmail } from "@/lib/send-welcome-email";
 
 const BASEROW_TOKEN = "zqTOMqUCdocw6zF1K14KYGz4w1UPbEDS";
 const TABLE_ID = "963283";
@@ -61,6 +62,16 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Send welcome email asynchronously (fire-and-forget)
+    // We don't await this to avoid slowing down the API response
+    sendWelcomeEmail({ nombre, email, telefono, empresa, mensaje })
+      .then(() => {
+        console.log(`✅ Welcome email sent to ${email}`);
+      })
+      .catch((emailError) => {
+        console.error(`❌ Failed to send welcome email to ${email}:`, emailError);
+      });
 
     return NextResponse.json({ success: true });
   } catch (error) {

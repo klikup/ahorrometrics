@@ -45,7 +45,7 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold text-white text-xs uppercase tracking-widest mb-5">Contacto</h4>
             <ul className="space-y-3 text-sm">
-              <li>contacto@ahorrometrics.com</li>
+              <li>contacto@ahorrometrics.es</li>
             </ul>
           </div>
         </div>
