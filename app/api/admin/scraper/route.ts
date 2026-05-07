@@ -62,93 +62,100 @@ async function geocode(query: string): Promise<{ lat: number; lon: number; displ
 async function findBusinesses(lat: number, lon: number, radiusKm: number): Promise<BusinessResult[]> {
   const radiusM = radiusKm * 1000;
 
-  // Overpass QL query: find nodes and ways with business-related tags
-  const query = `
-    [out:json][timeout:30];
-    (
-      node["shop"](around:${radiusM},${lat},${lon});
-      node["office"](around:${radiusM},${lat},${lon});
-      node["amenity"~"restaurant|bar|cafe|bank|pharmacy|dentist|doctors|veterinary|fuel|car_repair|car_wash"](around:${radiusM},${lat},${lon});
-      node["craft"](around:${radiusM},${lat},${lon});
-      node["tourism"~"hotel|hostel|guest_house|apartment"](around:${radiusM},${lat},${lon});
-      node["industrial"](around:${radiusM},${lat},${lon});
-      node["company"](around:${radiusM},${lat},${lon});
-      way["shop"](around:${radiusM},${lat},${lon});
-      way["office"](around:${radiusM},${lat},${lon});
-      way["amenity"~"restaurant|bar|cafe|bank|pharmacy|dentist|doctors|veterinary|fuel|car_repair|car_wash"](around:${radiusM},${lat},${lon});
-      way["craft"](around:${radiusM},${lat},${lon});
-      way["tourism"~"hotel|hostel|guest_house|apartment"](around:${radiusM},${lat},${lon});
-    );
-    out center tags;
-  `;
+  // Single-line Overpass QL query to avoid encoding/whitespace issues
+  const query = `[out:json][timeout:60];(node["shop"](around:${radiusM},${lat},${lon});node["office"](around:${radiusM},${lat},${lon});node["amenity"~"restaurant|bar|cafe|bank|pharmacy|dentist|doctors|veterinary|fuel|car_repair|car_wash"](around:${radiusM},${lat},${lon});node["craft"](around:${radiusM},${lat},${lon});node["tourism"~"hotel|hostel|guest_house|apartment"](around:${radiusM},${lat},${lon});node["company"](around:${radiusM},${lat},${lon});way["shop"](around:${radiusM},${lat},${lon});way["office"](around:${radiusM},${lat},${lon});way["amenity"~"restaurant|bar|cafe|bank|pharmacy|dentist|doctors|veterinary|fuel|car_repair|car_wash"](around:${radiusM},${lat},${lon});way["craft"](around:${radiusM},${lat},${lon});way["tourism"~"hotel|hostel|guest_house|apartment"](around:${radiusM},${lat},${lon}););out body center;`;
 
-  const res = await fetch("https://overpass-api.de/api/interpreter", {
-    method: "POST",
-    body: `data=${encodeURIComponent(query)}`,
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-  });
+  console.log(`[Scraper] Querying businesses at ${lat},${lon} radius ${radiusM}m`);
 
-  if (!res.ok) {
-    console.error("Overpass API error:", res.status);
-    return [];
+  // Try multiple endpoints for reliability
+  const endpoints = [
+    "https://overpass-api.de/api/interpreter",
+    "https://lz4.overpass-api.de/api/interpreter",
+    "https://z.overpass-api.de/api/interpreter",
+  ];
+
+  let lastError = "";
+
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        body: `data=${encodeURIComponent(query)}`,
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "User-Agent": "AhorroMetrics-Scraper/1.0",
+        },
+      });
+
+      if (!res.ok) {
+        lastError = `${endpoint} returned ${res.status}`;
+        console.error(`[Scraper] ${lastError}`);
+        continue;
+      }
+
+      const data = await res.json();
+      const elements: OverpassElement[] = data.elements || [];
+      console.log(`[Scraper] ${endpoint} returned ${elements.length} raw elements`);
+
+      const results: BusinessResult[] = [];
+
+      for (const el of elements) {
+        const tags = el.tags || {};
+        const name = tags.name || tags["brand"] || "";
+        if (!name) continue;
+
+        const elLat = el.lat || el.center?.lat || 0;
+        const elLon = el.lon || el.center?.lon || 0;
+
+        let tipo = "Negocio";
+        if (tags.shop) tipo = translateTag("shop", tags.shop);
+        else if (tags.office) tipo = translateTag("office", tags.office);
+        else if (tags.amenity) tipo = translateTag("amenity", tags.amenity);
+        else if (tags.craft) tipo = translateTag("craft", tags.craft);
+        else if (tags.tourism) tipo = translateTag("tourism", tags.tourism);
+
+        const addressParts = [
+          tags["addr:street"],
+          tags["addr:housenumber"],
+          tags["addr:postcode"],
+          tags["addr:city"],
+        ].filter(Boolean);
+        const direccion = addressParts.length > 0 ? addressParts.join(", ") : "";
+
+        const telefono = tags.phone || tags["contact:phone"] || tags["phone:mobile"] || "";
+        const email = tags.email || tags["contact:email"] || "";
+        const web = tags.website || tags["contact:website"] || tags["url"] || "";
+
+        results.push({
+          id: el.id,
+          nombre: name,
+          tipo,
+          direccion,
+          telefono: cleanPhone(telefono),
+          email,
+          web: cleanUrl(web),
+          lat: elLat,
+          lon: elLon,
+        });
+      }
+
+      // Sort: businesses with contact info first
+      results.sort((a, b) => {
+        const aScore = (a.telefono ? 2 : 0) + (a.email ? 2 : 0) + (a.web ? 1 : 0);
+        const bScore = (b.telefono ? 2 : 0) + (b.email ? 2 : 0) + (b.web ? 1 : 0);
+        return bScore - aScore;
+      });
+
+      console.log(`[Scraper] Returning ${results.length} named businesses`);
+      return results;
+    } catch (e) {
+      lastError = `${endpoint} failed: ${e}`;
+      console.error(`[Scraper] ${lastError}`);
+    }
   }
 
-  const data = await res.json();
-  const elements: OverpassElement[] = data.elements || [];
-
-  const results: BusinessResult[] = [];
-
-  for (const el of elements) {
-    const tags = el.tags || {};
-    const name = tags.name || tags["brand"] || "";
-    if (!name) continue; // Skip unnamed businesses
-
-    const elLat = el.lat || el.center?.lat || 0;
-    const elLon = el.lon || el.center?.lon || 0;
-
-    // Determine business type
-    let tipo = "Negocio";
-    if (tags.shop) tipo = translateTag("shop", tags.shop);
-    else if (tags.office) tipo = translateTag("office", tags.office);
-    else if (tags.amenity) tipo = translateTag("amenity", tags.amenity);
-    else if (tags.craft) tipo = translateTag("craft", tags.craft);
-    else if (tags.tourism) tipo = translateTag("tourism", tags.tourism);
-
-    // Build address
-    const addressParts = [
-      tags["addr:street"],
-      tags["addr:housenumber"],
-      tags["addr:postcode"],
-      tags["addr:city"],
-    ].filter(Boolean);
-    const direccion = addressParts.length > 0 ? addressParts.join(", ") : "";
-
-    // Contact info
-    const telefono = tags.phone || tags["contact:phone"] || tags["phone:mobile"] || "";
-    const email = tags.email || tags["contact:email"] || "";
-    const web = tags.website || tags["contact:website"] || tags["url"] || "";
-
-    results.push({
-      id: el.id,
-      nombre: name,
-      tipo,
-      direccion,
-      telefono: cleanPhone(telefono),
-      email,
-      web: cleanUrl(web),
-      lat: elLat,
-      lon: elLon,
-    });
-  }
-
-  // Sort: businesses with contact info first
-  results.sort((a, b) => {
-    const aScore = (a.telefono ? 2 : 0) + (a.email ? 2 : 0) + (a.web ? 1 : 0);
-    const bScore = (b.telefono ? 2 : 0) + (b.email ? 2 : 0) + (b.web ? 1 : 0);
-    return bScore - aScore;
-  });
-
-  return results;
+  console.error(`[Scraper] All endpoints failed. Last error: ${lastError}`);
+  return [];
 }
 
 function cleanPhone(phone: string): string {
@@ -216,15 +223,13 @@ export async function POST(request: NextRequest) {
     let searchLat: number;
     let searchLon: number;
     let locationName: string;
-    const radiusKm = radio || 5; // Default 5km
+    const radiusKm = radio || 5;
 
     if (lat && lon) {
-      // Coordinates provided directly (from map click)
       searchLat = lat;
       searchLon = lon;
       locationName = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
     } else if (localidad) {
-      // Geocode the locality name
       const geo = await geocode(localidad);
       if (!geo) {
         return NextResponse.json(
@@ -242,7 +247,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`🔍 Searching businesses near ${locationName} (radius: ${radiusKm}km)`);
+    console.log(`[Scraper] Searching near "${locationName}" (${radiusKm}km)`);
 
     const businesses = await findBusinesses(searchLat, searchLon, radiusKm);
 
