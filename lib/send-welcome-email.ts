@@ -10,16 +10,41 @@ interface ContactData {
 
 /**
  * Creates a reusable SMTP transporter using environment variables.
+ * Validates that credentials are properly configured before attempting to send.
  */
 function createTransporter() {
+  const host = process.env.SMTP_HOST || "smtp.gmail.com";
+  const port = parseInt(process.env.SMTP_PORT || "587");
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+
+  // Log configuration (without exposing the full password)
+  console.log(`📧 SMTP Config: host=${host}, port=${port}, user=${user || "NOT SET"}, pass=${pass ? "****" + pass.slice(-4) : "NOT SET"}`);
+
+  if (!user || !pass) {
+    throw new Error(
+      "SMTP credentials not configured. Set SMTP_USER and SMTP_PASS in .env.local"
+    );
+  }
+
+  if (pass === "tu_contraseña_de_aplicacion_aqui") {
+    throw new Error(
+      "SMTP_PASS still has the placeholder value. Update it with your real SMTP password in .env.local"
+    );
+  }
+
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || "smtp.gmail.com",
-    port: parseInt(process.env.SMTP_PORT || "587"),
-    secure: false, // true for 465, false for 587
+    host,
+    port,
+    secure: port === 465, // true for 465, false for 587
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+      user,
+      pass,
     },
+    // Timeout settings
+    connectionTimeout: 10000, // 10 seconds
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
   });
 }
 
@@ -304,7 +329,18 @@ function generateWelcomeEmailHTML(data: ContactData): string {
  * This is called automatically when a new contact form is submitted.
  */
 export async function sendWelcomeEmail(data: ContactData): Promise<void> {
+  console.log(`📧 Preparing welcome email for: ${data.email}`);
+  
   const transporter = createTransporter();
+
+  // Verify SMTP connection before sending
+  try {
+    await transporter.verify();
+    console.log("📧 SMTP connection verified successfully");
+  } catch (verifyError) {
+    console.error("❌ SMTP connection verification failed:", verifyError);
+    throw verifyError;
+  }
 
   const mailOptions = {
     from: {
@@ -344,5 +380,7 @@ contacto@ahorrometrics.es
     `.trim(),
   };
 
-  await transporter.sendMail(mailOptions);
+  const info = await transporter.sendMail(mailOptions);
+  console.log(`📧 Email sent successfully! Message ID: ${info.messageId}`);
 }
+
