@@ -47,3 +47,27 @@ model Auditoria {
 
   @@map("auditorias")
 }
+
+// ─── Empresas scrapeadas (seguimiento de prospección) ───
+model ScrapedBusiness {
+  id           Int       @id @default(autoincrement())
+  osmId        Int       @map("osm_id")
+  nombre       String
+  tipo         String    @default("")
+  direccion    String    @default("")
+  telefono     String    @default("")
+  email        String    @default("")
+  web          String    @default("")
+  lat          Float     @default(0)
+  lon          Float     @default(0)
+  localidad    String    @default("")
+  estado       String    @default("nuevo") // nuevo, visto, contactado, descartado
+  emailEnviado Boolean   @default(false) @map("email_enviado")
+  fechaEmail   DateTime? @map("fecha_email")
+  notas        String    @default("") @db.Text
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@unique([osmId, localidad])
+  @@map("scraped_businesses")
+}
