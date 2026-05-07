@@ -9,10 +9,6 @@ async function isAuth() {
   return c.get("am_admin_session")?.value === SESSION_TOKEN;
 }
 
-// Serialize BigInt for JSON
-function serialize(obj: unknown): unknown {
-  return JSON.parse(JSON.stringify(obj, (_, v) => typeof v === "bigint" ? Number(v) : v));
-}
 
 // POST - Save businesses from scraper results
 export async function POST(request: NextRequest) {
@@ -30,9 +26,9 @@ export async function POST(request: NextRequest) {
     for (const b of businesses) {
       try {
         await prisma.scrapedBusiness.upsert({
-          where: { osmId_localidad: { osmId: BigInt(b.id), localidad: localidad || "" } },
+          where: { osmId_localidad: { osmId: Number(b.id), localidad: localidad || "" } },
           create: {
-            osmId: BigInt(b.id), nombre: b.nombre || "", tipo: b.tipo || "",
+            osmId: Number(b.id), nombre: b.nombre || "", tipo: b.tipo || "",
             direccion: b.direccion || "", telefono: b.telefono || "",
             email: b.email || "", web: b.web || "",
             lat: b.lat || 0, lon: b.lon || 0, localidad: localidad || "",
@@ -73,12 +69,12 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ results: serialize(businesses.map(b => ({
+    return NextResponse.json({ results: businesses.map(b => ({
       id: b.id, osmId: Number(b.osmId), nombre: b.nombre, tipo: b.tipo,
       direccion: b.direccion, telefono: b.telefono, email: b.email, web: b.web,
       lat: b.lat, lon: b.lon, localidad: b.localidad, estado: b.estado,
       emailEnviado: b.emailEnviado, fechaEmail: b.fechaEmail?.toISOString() || null,
-    }))) });
+    })) });
   } catch (error) {
     console.error("Error fetching businesses:", error);
     return NextResponse.json({ error: "Error: " + (error instanceof Error ? error.message : "") }, { status: 500 });
