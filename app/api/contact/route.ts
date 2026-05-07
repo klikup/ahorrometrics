@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendWelcomeEmail } from "@/lib/send-welcome-email";
-
-const BASEROW_TOKEN = "zqTOMqUCdocw6zF1K14KYGz4w1UPbEDS";
-const TABLE_ID = "963283";
-const BASEROW_URL = `https://api.baserow.io/api/database/rows/table/${TABLE_ID}/?user_field_names=true`;
+import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,7 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Store structured data in Notas as JSON
+    // Store structured data in notas as JSON
     const notasData = JSON.stringify({
       estado: "nuevo",
       mensaje_original: mensaje || "",
@@ -38,33 +35,19 @@ export async function POST(request: NextRequest) {
       observaciones: "",
     });
 
-    const baserowResponse = await fetch(BASEROW_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Token ${BASEROW_TOKEN}`,
-        "Content-Type": "application/json",
+    // Save to PostgreSQL
+    await prisma.contact.create({
+      data: {
+        nombre,
+        email,
+        telefono,
+        empresa: empresa || "",
+        notas: notasData,
+        activo: true,
       },
-      body: JSON.stringify({
-        Nombre: nombre,
-        Email: email,
-        Telefono: telefono,
-        Empresa: empresa || "",
-        Notas: notasData,
-        Activo: true,
-      }),
     });
 
-    if (!baserowResponse.ok) {
-      const errorData = await baserowResponse.text();
-      console.error("Baserow error:", errorData);
-      return NextResponse.json(
-        { error: "Error al guardar los datos. Inténtalo de nuevo más tarde." },
-        { status: 500 }
-      );
-    }
-
     // Send welcome email asynchronously (fire-and-forget)
-    // We don't await this to avoid slowing down the API response
     sendWelcomeEmail({ nombre, email, telefono, empresa, mensaje })
       .then(() => {
         console.log(`✅ Welcome email sent to ${email}`);

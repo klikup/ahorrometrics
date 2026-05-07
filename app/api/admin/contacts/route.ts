@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { prisma } from "@/lib/prisma";
 
-const BASEROW_TOKEN = "zqTOMqUCdocw6zF1K14KYGz4w1UPbEDS";
-const TABLE_ID = "963283";
 const SESSION_TOKEN = "am_session_valid_k8x2p9";
 
 async function isAuthenticated() {
@@ -18,16 +17,24 @@ export async function GET() {
   }
 
   try {
-    const res = await fetch(
-      `https://api.baserow.io/api/database/rows/table/${TABLE_ID}/?user_field_names=true&size=200`,
-      {
-        headers: { Authorization: `Token ${BASEROW_TOKEN}` },
-        cache: "no-store",
-      }
-    );
-    const data = await res.json();
-    return NextResponse.json(data);
-  } catch {
+    const contacts = await prisma.contact.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Map to match Baserow field names used by the frontend
+    const results = contacts.map((c) => ({
+      id: c.id,
+      Nombre: c.nombre,
+      Email: c.email,
+      Telefono: c.telefono,
+      Empresa: c.empresa,
+      Notas: c.notas,
+      Activo: c.activo,
+    }));
+
+    return NextResponse.json({ results });
+  } catch (error) {
+    console.error("Error fetching contacts:", error);
     return NextResponse.json({ error: "Error al obtener datos" }, { status: 500 });
   }
 }
@@ -40,24 +47,15 @@ export async function DELETE(request: NextRequest) {
 
   try {
     const { id } = await request.json();
-    const res = await fetch(
-      `https://api.baserow.io/api/database/rows/table/${TABLE_ID}/${id}/`,
-      {
-        method: "DELETE",
-        headers: { Authorization: `Token ${BASEROW_TOKEN}` },
-      }
-    );
-
-    if (!res.ok) {
-      return NextResponse.json({ error: "Error al eliminar" }, { status: 500 });
-    }
+    await prisma.contact.delete({ where: { id } });
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
+  } catch (error) {
+    console.error("Error deleting contact:", error);
+    return NextResponse.json({ error: "Error al eliminar" }, { status: 500 });
   }
 }
 
-// PATCH - Actualizar un contacto (toggle Activo)
+// PATCH - Actualizar un contacto
 export async function PATCH(request: NextRequest) {
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
@@ -65,24 +63,32 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const { id, ...fields } = await request.json();
-    const res = await fetch(
-      `https://api.baserow.io/api/database/rows/table/${TABLE_ID}/${id}/?user_field_names=true`,
-      {
-        method: "PATCH",
-        headers: {
-          Authorization: `Token ${BASEROW_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(fields),
-      }
-    );
 
-    if (!res.ok) {
-      return NextResponse.json({ error: "Error al actualizar" }, { status: 500 });
-    }
-    const data = await res.json();
-    return NextResponse.json(data);
-  } catch {
-    return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
+    // Map frontend field names to database field names
+    const updateData: Record<string, unknown> = {};
+    if (fields.Nombre !== undefined) updateData.nombre = fields.Nombre;
+    if (fields.Email !== undefined) updateData.email = fields.Email;
+    if (fields.Telefono !== undefined) updateData.telefono = fields.Telefono;
+    if (fields.Empresa !== undefined) updateData.empresa = fields.Empresa;
+    if (fields.Notas !== undefined) updateData.notas = fields.Notas;
+    if (fields.Activo !== undefined) updateData.activo = fields.Activo;
+
+    const updated = await prisma.contact.update({
+      where: { id },
+      data: updateData,
+    });
+
+    return NextResponse.json({
+      id: updated.id,
+      Nombre: updated.nombre,
+      Email: updated.email,
+      Telefono: updated.telefono,
+      Empresa: updated.empresa,
+      Notas: updated.notas,
+      Activo: updated.activo,
+    });
+  } catch (error) {
+    console.error("Error updating contact:", error);
+    return NextResponse.json({ error: "Error al actualizar" }, { status: 500 });
   }
 }

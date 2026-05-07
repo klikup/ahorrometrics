@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Contactos (reemplaza tabla Baserow 963283) ───
+model Contact {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  email     String
+  telefono  String
+  empresa   String   @default("")
+  notas     String   @default("") @db.Text
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relacion con auditoria
+  auditoria Auditoria?
+
+  @@map("contacts")
+}
+
+// ─── Auditorias (reemplaza tabla Baserow 963329) ───
+model Auditoria {
+  id            Int      @id @default(autoincrement())
+  nombre        String   @default("")
+  contactoId    Int      @unique @map("contacto_id")
+  estado        String   @default("nuevo")
+  fechaContacto String   @default("") @map("fecha_contacto")
+  electricidad  String   @default("") @db.Text
+  telecom       String   @default("") @db.Text
+  otrosGastos   String   @default("") @map("otros_gastos") @db.Text
+  ahorroTotal   String   @default("") @map("ahorro_total")
+  notas         String   @default("") @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relacion con contacto
+  contact Contact @relation(fields: [contactoId], references: [id], onDelete: Cascade)
+
+  @@map("auditorias")
+}
