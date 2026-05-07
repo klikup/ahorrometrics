@@ -1,0 +1,242 @@
+{
+  "electricidad": [
+    {
+      "proveedor": "Mercado Regulado (PVPC)",
+      "plan": "Tarifa PVPC (Red Eléctrica)",
+      "precio_kwh": 0.143,
+      "potencia_kw_mes": 3.1,
+      "permanencia": "Sin permanencia",
+      "url": "https://www.esios.ree.es/es/pvpc",
+      "detalles": "Dato extraído en TIEMPO REAL de la API de Red Eléctrica de España para el día 2026-05-07. Es la media del precio de la luz por horas para hoy."
+    },
+    {
+      "proveedor": "Octopus Energy",
+      "plan": "Flexible Hogar",
+      "precio_kwh": 0.129,
+      "potencia_kw_mes": 3.5,
+      "permanencia": "Sin permanencia",
+      "url": "https://octopusenergy.es/tarifas",
+      "detalles": "Tarifa indexada al mercado mayorista. Sin penalizaciones por baja. Facturación digital. Energía 100% renovable. App de gestión de consumo incluida."
+    },
+    {
+      "proveedor": "Lucera",
+      "plan": "Tarifa Justa",
+      "precio_kwh": 0.132,
+      "potencia_kw_mes": 3.6,
+      "permanencia": "Sin permanencia",
+      "url": "https://lucera.es/tarifas-luz",
+      "detalles": "Cooperativa energética. Precio estable sin tramos horarios. Atención personalizada. Energía verde certificada. Factura simplificada."
+    },
+    {
+      "proveedor": "TotalEnergies",
+      "plan": "Online",
+      "precio_kwh": 0.149,
+      "potencia_kw_mes": 4.1,
+      "permanencia": "Sin permanencia",
+      "url": "https://www.totalenergies.es/es/hogares/electricidad",
+      "detalles": "Descuento por gestión online. Sin permanencia. Incluye servicio de mantenimiento eléctrico básico. Programa de fidelización con descuentos progresivos."
+    },
+    {
+      "proveedor": "Repsol",
+      "plan": "Luz a tu Aire",
+      "precio_kwh": 0.152,
+      "potencia_kw_mes": 4.8,
+      "permanencia": "Sin permanencia",
+      "url": "https://www.repsol.es/electricidad-y-gas/tarifas-luz/",
+      "detalles": "Descuento en carburante vinculado. Tarifa plana opcional. Programa Waylet integrado. Servicio de urgencias eléctricas 24h."
+    },
+    {
+      "proveedor": "Holaluz",
+      "plan": "Clásica",
+      "precio_kwh": 0.149,
+      "potencia_kw_mes": 3.8,
+      "permanencia": "Sin permanencia",
+      "url": "https://www.holaluz.com/tarifas/",
+      "detalles": "Tarifa simple sin tramos. Compensación de excedentes solares. App de monitorización. Atención telefónica sin esperas."
+    },
+    {
+      "proveedor": "Endesa",
+      "plan": "One Luz",
+      "precio_kwh": 0.146,
+      "potencia_kw_mes": 4.5,
+      "permanencia": "Sin permanencia",
+      "url": "https://www.endesa.com/es/light-gas/light/one-luz",
+      "detalles": "Precio fijo 12 meses. Mantenimiento eléctrico incluido. Descuentos por domiciliación. Servicio técnico urgente."
+    },
+    {
+      "proveedor": "Iberdrola",
+      "plan": "Plan Estable",
+      "precio_kwh": 0.158,
+      "potencia_kw_mes": 4.2,
+      "permanencia": "12 meses",
+      "url": "https://www.iberdrola.es/luz/plan-estable",
+      "detalles": "Precio fijo durante 12 meses. Incluye Smart Solar opción. Servicio Iberdrola Hogar. Programa de eficiencia energética."
+    },
+    {
+      "proveedor": "Naturgy",
+      "plan": "Tarifa Fija",
+      "precio_kwh": 0.157,
+      "potencia_kw_mes": 3.9,
+      "permanencia": "12 meses",
+      "url": "https://www.naturgy.es/hogar/luz/tarifa-fija",
+      "detalles": "Precio cerrado 12 meses. ServiFlex mantenimiento. Seguro de hogar opcional con descuento. Programa de puntos canjeables."
+    }
+  ],
+  "telecom": [
+    {
+      "proveedor": "Digi",
+      "plan": "Combo 50GB",
+      "fibra_mb": 300,
+      "lineas_moviles": 1,
+      "gb_datos": 50,
+      "precio_mes": 30,
+      "permanencia": "Sin permanencia",
+      "url": "https://www.digimobil.es/tarifas-702702702702702702",
+      "detalles": "Fibra 300Mb simétrica. 50GB datos 4G/5G. Llamadas ilimitadas. Router WiFi 6 incluido. Sin cuota de alta."
+    },
+    {
+      "proveedor": "Finetwork",
+      "plan": "Fibra + Móvil",
+      "fibra_mb": 600,
+      "lineas_moviles": 1,
+      "gb_datos": 30,
+      "precio_mes": 37,
+      "permanencia": "Sin permanencia",
+      "url": "https://www.finetwork.com/fibra-y-movil",
+      "detalles": "Fibra 600Mb. 30GB datos 5G. Llamadas ilimitadas. Acumulación de GB no consumidos. App de gestión."
+    },
+    {
+      "proveedor": "Lowi",
+      "plan": "Fibra y Móvil",
+      "fibra_mb": 600,
+      "lineas_moviles": 1,
+      "gb_datos": 25,
+      "precio_mes": 38,
+      "permanencia": "Sin permanencia",
+      "url": "https://www.lowi.es/fibra-movil",
+      "detalles": "Red Vodafone. Fibra 600Mb simétrica. 25GB datos 4G. Llamadas ilimitadas. Precio garantizado."
+    },
+    {
+      "proveedor": "MásMóvil",
+      "plan": "Empresas Total",
+      "fibra_mb": 600,
+      "lineas_moviles": 1,
+      "gb_datos": 30,
+      "precio_mes": 43,
+      "permanencia": "Sin permanencia",
+      "url": "https://www.masmovil.es/empresas/",
+      "detalles": "Fibra 600Mb. 30GB datos 5G. IP fija opcional. Centralita virtual. Soporte empresas dedicado."
+    },
+    {
+      "proveedor": "Pepephone",
+      "plan": "Inimitable",
+      "fibra_mb": 600,
+      "lineas_moviles": 1,
+      "gb_datos": 100,
+      "precio_mes": 41,
+      "permanencia": "Sin permanencia",
+      "url": "https://www.pepephone.com/fibra-movil",
+      "detalles": "Red Movistar. Fibra 600Mb. 100GB datos. Llamadas ilimitadas. Los GB no gastados se acumulan."
+    },
+    {
+      "proveedor": "Orange",
+      "plan": "Love Empresa",
+      "fibra_mb": 500,
+      "lineas_moviles": 1,
+      "gb_datos": 25,
+      "precio_mes": 57,
+      "permanencia": "12 meses",
+      "url": "https://www.orange.es/empresas/",
+      "detalles": "Fibra 500Mb. 25GB datos 5G. Centralita virtual incluida. Soporte técnico 24/7. Cloud backup 50GB."
+    },
+    {
+      "proveedor": "Vodafone",
+      "plan": "One Pro",
+      "fibra_mb": 600,
+      "lineas_moviles": 1,
+      "gb_datos": 30,
+      "precio_mes": 63,
+      "permanencia": "12 meses",
+      "url": "https://www.vodafone.es/c/empresas/",
+      "detalles": "Fibra 600Mb. 30GB datos 5G. OneNumber incluido. Secure Net. Soporte preferente empresas."
+    },
+    {
+      "proveedor": "Movistar",
+      "plan": "Fusión Empresas",
+      "fibra_mb": 600,
+      "lineas_moviles": 1,
+      "gb_datos": 25,
+      "precio_mes": 63,
+      "permanencia": "12 meses",
+      "url": "https://www.movistar.es/empresas/",
+      "detalles": "Fibra 600Mb simétrica. 25GB datos 5G. Multicloud. Microsoft 365 opción. Soporte técnico premium."
+    }
+  ],
+  "lineas_moviles_extra": [
+    {
+      "proveedor": "Digi",
+      "plan": "Solo Móvil 50GB",
+      "gb_datos": 50,
+      "precio_mes": 10,
+      "url": "https://www.digimobil.es/tarifas-movil",
+      "detalles": "50GB datos 4G/5G. Llamadas ilimitadas nacionales. Roaming UE incluido."
+    },
+    {
+      "proveedor": "Finetwork",
+      "plan": "Solo Móvil 30GB",
+      "gb_datos": 30,
+      "precio_mes": 11,
+      "url": "https://www.finetwork.com/tarifas-movil",
+      "detalles": "30GB datos 5G. Llamadas ilimitadas. GB acumulables al mes siguiente."
+    },
+    {
+      "proveedor": "Lowi",
+      "plan": "Solo Móvil 25GB",
+      "gb_datos": 25,
+      "precio_mes": 12,
+      "url": "https://www.lowi.es/tarifas-movil",
+      "detalles": "Red Vodafone. 25GB datos 4G. Llamadas ilimitadas. Sin sorpresas."
+    },
+    {
+      "proveedor": "MásMóvil",
+      "plan": "Solo Móvil 30GB",
+      "gb_datos": 30,
+      "precio_mes": 13,
+      "url": "https://www.masmovil.es/movil/",
+      "detalles": "30GB datos 5G. Llamadas ilimitadas. Multilinea con descuento."
+    },
+    {
+      "proveedor": "Pepephone",
+      "plan": "Solo Móvil 100GB",
+      "gb_datos": 100,
+      "precio_mes": 15,
+      "url": "https://www.pepephone.com/tarifas-movil",
+      "detalles": "100GB datos. Red Movistar. GB acumulables. Sin letra pequeña."
+    },
+    {
+      "proveedor": "Orange",
+      "plan": "Línea Empresa",
+      "gb_datos": 15,
+      "precio_mes": 19,
+      "url": "https://www.orange.es/empresas/movil",
+      "detalles": "15GB datos 5G. Llamadas ilimitadas. Gestión de flotas. MDM básico."
+    },
+    {
+      "proveedor": "Vodafone",
+      "plan": "Línea Pro",
+      "gb_datos": 20,
+      "precio_mes": 20,
+      "url": "https://www.vodafone.es/c/empresas/movil/",
+      "detalles": "20GB datos 5G. Llamadas ilimitadas. SecureNet. OneNumber."
+    },
+    {
+      "proveedor": "Movistar",
+      "plan": "Línea Empresas",
+      "gb_datos": 15,
+      "precio_mes": 22,
+      "url": "https://www.movistar.es/empresas/movil/",
+      "detalles": "15GB datos 5G. Llamadas ilimitadas. Tu Experto. Fusión descuento."
+    }
+  ],
+  "ultima_actualizacion": "2026-05-07 09:00:42"
+}
