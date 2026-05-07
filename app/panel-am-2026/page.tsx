@@ -6,7 +6,7 @@ import TarifasView from "./TarifasView";
 import DetailServices from "./DetailServices";
 
 interface Contact { id:number; Nombre:string; Email:string; Telefono:string; Empresa:string; Notas:string; Activo:boolean; }
-interface Auditoria { id:number; Nombre:string; ContactoID:number; Estado:string; FechaContacto:string; Electricidad:string; Telecom:string; OtrosGastos:string; AhorroTotal:string; Notas:string; }
+interface Auditoria { id:number; Nombre:string; ContactoID:number; Estado:string; FechaContacto:string; Electricidad:string; Telecom:string; OtrosGastos:string; AhorroTotal:string; Notas:string; [k:string]:any; }
 
 const ESTADOS=[
   {key:"nuevo",label:"Nuevo",dot:"bg-blue-400",bg:"bg-blue-500/10",text:"text-blue-400",border:"border-blue-500/20"},
