@@ -33,7 +33,7 @@ export default function ScraperView() {
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [result, setResult] = useState<SearchResult | null>(null);
-  const [savedMap, setSavedMap] = useState<Record<number, SavedBiz>>({});
+  const [savedMap, setSavedMap] = useState<Record<string, SavedBiz>>({});
   const [filter, setFilter] = useState<"todos"|"telefono"|"email"|"web">("todos");
   const [sendingId, setSendingId] = useState<number | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
@@ -74,14 +74,14 @@ export default function ScraperView() {
 
     for (const b of result.results) {
       if (!b.lat || !b.lon) continue;
-      const s = savedMap[b.id];
+      const s = savedMap[String(b.id)];
       const estado = s?.estado || "nuevo";
       const color = ESTADO_COLORS[estado]?.dot || "#94a3b8";
-      const size = s?.emailEnviado ? 14 : 10;
+      const size = 16;
 
       const icon = L.divIcon({
-        html: `<div style="background:${color};width:${size}px;height:${size}px;border-radius:50%;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.4);${s?.emailEnviado ? "box-shadow:0 0 6px " + color : ""}"></div>`,
-        className: "", iconSize: [size + 4, size + 4], iconAnchor: [(size + 4) / 2, (size + 4) / 2],
+        html: `<div style="background:${color};width:${size}px;height:${size}px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.5),0 0 12px ${color}40;"></div>`,
+        className: "", iconSize: [size + 6, size + 6], iconAnchor: [(size + 6) / 2, (size + 6) / 2],
       });
 
       const marker = L.marker([b.lat, b.lon], { icon });
@@ -115,8 +115,8 @@ export default function ScraperView() {
       const res = await fetch(`/api/admin/scraper/businesses?localidad=${encodeURIComponent(loc)}`);
       if (!res.ok) return;
       const d = await res.json();
-      const map: Record<number, SavedBiz> = {};
-      for (const b of d.results || []) map[b.osmId] = { dbId: b.id, estado: b.estado, emailEnviado: b.emailEnviado, fechaEmail: b.fechaEmail };
+      const map: Record<string, SavedBiz> = {};
+      for (const b of d.results || []) map[String(b.osmId)] = { dbId: b.id, estado: b.estado, emailEnviado: b.emailEnviado, fechaEmail: b.fechaEmail };
       setSavedMap(map);
     } catch { /* ignore */ }
   };
@@ -141,7 +141,7 @@ export default function ScraperView() {
   const updateEstado = async (osmId: number, dbId: number, estado: string) => {
     try {
       await fetch("/api/admin/scraper/businesses", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: dbId, estado }) });
-      setSavedMap(prev => ({ ...prev, [osmId]: { ...prev[osmId], estado } }));
+      setSavedMap(prev => ({ ...prev, [String(osmId)]: { ...prev[String(osmId)], estado } }));
     } catch { /* ignore */ }
   };
 
@@ -152,7 +152,7 @@ export default function ScraperView() {
       const res = await fetch("/api/admin/scraper/email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ businessId: dbId, emailOverride: email }) });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error);
-      setSavedMap(prev => ({ ...prev, [osmId]: { ...prev[osmId], estado: "contactado", emailEnviado: true, fechaEmail: new Date().toISOString() } }));
+      setSavedMap(prev => ({ ...prev, [String(osmId)]: { ...prev[String(osmId)], estado: "contactado", emailEnviado: true, fechaEmail: new Date().toISOString() } }));
       setSuccessMsg(`Email enviado a ${email}`);
       setTimeout(() => setSuccessMsg(""), 4000);
     } catch (e) { setError(e instanceof Error ? e.message : "Error"); }
@@ -169,7 +169,7 @@ export default function ScraperView() {
   const exportCSV = () => {
     if (!filtered.length) return;
     const h = "Nombre,Tipo,Direccion,Telefono,Email,Web,Estado\n";
-    const rows = filtered.map(b => `"${b.nombre}","${b.tipo}","${b.direccion}","${b.telefono}","${b.email}","${b.web}","${savedMap[b.id]?.estado || "nuevo"}"`).join("\n");
+    const rows = filtered.map(b => `"${b.nombre}","${b.tipo}","${b.direccion}","${b.telefono}","${b.email}","${b.web}","${savedMap[String(b.id)]?.estado || "nuevo"}"`).join("\n");
     const blob = new Blob([h + rows], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url;
     a.download = `empresas_${result?.location.name.split(",")[0] || "export"}_${new Date().toISOString().split("T")[0]}.csv`;
@@ -272,7 +272,7 @@ export default function ScraperView() {
               </thead>
               <tbody>
                 {filtered.slice(0, 200).map(b => {
-                  const s = savedMap[b.id];
+                  const s = savedMap[String(b.id)];
                   const estado = s?.estado || "nuevo";
                   const ec = ESTADO_COLORS[estado] || ESTADO_COLORS.nuevo;
                   return (

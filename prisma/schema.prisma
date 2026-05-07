@@ -51,7 +51,7 @@ model Auditoria {
 // ─── Empresas scrapeadas (seguimiento de prospección) ───
 model ScrapedBusiness {
   id           Int       @id @default(autoincrement())
-  osmId        Int       @map("osm_id")
+  osmId        String    @map("osm_id")
   nombre       String
   tipo         String    @default("")
   direccion    String    @default("")

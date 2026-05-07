@@ -26,9 +26,9 @@ export async function POST(request: NextRequest) {
     for (const b of businesses) {
       try {
         await prisma.scrapedBusiness.upsert({
-          where: { osmId_localidad: { osmId: Number(b.id), localidad: localidad || "" } },
+          where: { osmId_localidad: { osmId: String(b.id), localidad: localidad || "" } },
           create: {
-            osmId: Number(b.id), nombre: b.nombre || "", tipo: b.tipo || "",
+            osmId: String(b.id), nombre: b.nombre || "", tipo: b.tipo || "",
             direccion: b.direccion || "", telefono: b.telefono || "",
             email: b.email || "", web: b.web || "",
             lat: b.lat || 0, lon: b.lon || 0, localidad: localidad || "",
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({ results: businesses.map(b => ({
-      id: b.id, osmId: Number(b.osmId), nombre: b.nombre, tipo: b.tipo,
+      id: b.id, osmId: b.osmId, nombre: b.nombre, tipo: b.tipo,
       direccion: b.direccion, telefono: b.telefono, email: b.email, web: b.web,
       lat: b.lat, lon: b.lon, localidad: b.localidad, estado: b.estado,
       emailEnviado: b.emailEnviado, fechaEmail: b.fechaEmail?.toISOString() || null,
