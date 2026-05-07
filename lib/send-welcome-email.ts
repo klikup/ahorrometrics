@@ -139,7 +139,7 @@ function generateWelcomeEmailHTML(data: ContactData): string {
               
               <!-- Greeting -->
               <h1 style="margin: 0 0 8px; font-size: 26px; font-weight: 700; color: #1e293b; line-height: 1.3;">
-                ¡Hola, ${data.nombre}! 👋
+                Hola, ${data.nombre}
               </h1>
               <p style="margin: 0 0 28px; font-size: 16px; color: #64748b; line-height: 1.6;">
                 Gracias por confiar en <strong style="color: #4f46e5;">AhorroMetrics</strong>. Hemos recibido tu solicitud correctamente.
@@ -152,8 +152,8 @@ function generateWelcomeEmailHTML(data: ContactData): string {
                     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                       <tr>
                         <td width="48" valign="top" style="padding-right: 16px;">
-                          <div style="width: 44px; height: 44px; background-color: #dcfce7; border-radius: 50%; text-align: center; line-height: 44px; font-size: 22px;">
-                            ✅
+                          <div style="width: 44px; height: 44px; background-color: #dcfce7; border-radius: 50%; text-align: center; line-height: 44px; font-size: 22px; color: #166534; font-weight: bold;">
+                            &check;
                           </div>
                         </td>
                         <td valign="top">
@@ -327,6 +327,7 @@ function generateWelcomeEmailHTML(data: ContactData): string {
 /**
  * Sends a professional welcome/confirmation email to a new contact.
  * This is called automatically when a new contact form is submitted.
+ * Includes anti-spam best practices: proper headers, Reply-To, List-Unsubscribe.
  */
 export async function sendWelcomeEmail(data: ContactData): Promise<void> {
   console.log(`📧 Preparing welcome email for: ${data.email}`);
@@ -342,42 +343,65 @@ export async function sendWelcomeEmail(data: ContactData): Promise<void> {
     throw verifyError;
   }
 
+  const senderAddress = process.env.SMTP_USER || "contacto@ahorrometrics.es";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://ahorrometrics.es";
+
   const mailOptions = {
+    // Use the actual SMTP account as the sender (avoids domain mismatch spam flags)
     from: {
       name: "AhorroMetrics",
-      address: process.env.SMTP_USER || "contacto@ahorrometrics.es",
+      address: senderAddress,
     },
     to: data.email,
-    subject: `${data.nombre}, hemos recibido tu solicitud — AhorroMetrics`,
+    // Reply-To directs responses to the business email
+    replyTo: {
+      name: "AhorroMetrics",
+      address: senderAddress,
+    },
+    // Clean subject without special characters that trigger spam filters
+    subject: `${data.nombre}, hemos recibido tu solicitud - AhorroMetrics`,
+    // Anti-spam headers
+    headers: {
+      // List-Unsubscribe helps ISPs identify legitimate senders
+      "List-Unsubscribe": `<mailto:${senderAddress}?subject=Unsubscribe>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      // Precedence header marks this as a transactional/bulk email
+      "Precedence": "bulk",
+      // X-Mailer identifies the sending application
+      "X-Mailer": "AhorroMetrics Mailer",
+      // MIME version
+      "MIME-Version": "1.0",
+    },
+    // Priority: normal (high priority triggers spam filters)
+    priority: "normal" as const,
     html: generateWelcomeEmailHTML(data),
-    // Plain text fallback for email clients that don't support HTML
-    text: `
-¡Hola, ${data.nombre}!
+    // Plain text fallback (required for good spam score)
+    text: `Hola, ${data.nombre}.
 
 Gracias por confiar en AhorroMetrics. Hemos recibido tu solicitud correctamente.
 
-Tu consulta ha quedado registrada en nuestro sistema. Un experto en optimización de gastos revisará tu caso y se pondrá en contacto contigo en las próximas 24-48 horas.
+Tu consulta ha quedado registrada en nuestro sistema. Un experto en optimizacion de gastos revisara tu caso y se pondra en contacto contigo en las proximas 24-48 horas.
 
 DATOS DE TU SOLICITUD:
 - Nombre: ${data.nombre}
 - Email: ${data.email}
-- Teléfono: ${data.telefono}
+- Telefono: ${data.telefono}
 ${data.empresa ? `- Empresa: ${data.empresa}` : ""}
 ${data.mensaje ? `- Mensaje: ${data.mensaje}` : ""}
 
-¿QUÉ SUCEDERÁ A CONTINUACIÓN?
-1. Análisis preliminar — Revisaremos los datos que nos has proporcionado.
-2. Contacto personalizado — Un experto se pondrá en contacto contigo.
-3. Propuesta de ahorro — Te presentaremos un informe detallado.
+QUE SUCEDERA A CONTINUACION:
+1. Analisis preliminar - Revisaremos los datos que nos has proporcionado.
+2. Contacto personalizado - Un experto se pondra en contacto contigo.
+3. Propuesta de ahorro - Te presentaremos un informe detallado.
 
-Visita nuestro sitio: ${process.env.NEXT_PUBLIC_BASE_URL || "https://ahorrometrics.es"}
+Visita nuestro sitio: ${baseUrl}
 
----
-AhorroMetrics — Decisiones Inteligentes, Resultados Medibles
+AhorroMetrics - Decisiones Inteligentes, Resultados Medibles
 Si no ahorras, no cobramos.
-contacto@ahorrometrics.es
-© ${new Date().getFullYear()} AhorroMetrics. Todos los derechos reservados.
-    `.trim(),
+${senderAddress}
+${new Date().getFullYear()} AhorroMetrics. Todos los derechos reservados.
+
+Si no deseas recibir mas correos, responde a este email con el asunto "Unsubscribe".`.trim(),
   };
 
   const info = await transporter.sendMail(mailOptions);
