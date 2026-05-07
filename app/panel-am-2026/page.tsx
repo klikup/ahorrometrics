@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { LogOut, Trash2, RefreshCw, Lock, AlertCircle, CheckCircle2, X, Search, Users, ChevronRight, BarChart3, Clock, Tag, Database } from "lucide-react";
+import { LogOut, Trash2, RefreshCw, Lock, AlertCircle, CheckCircle2, X, Search, Users, ChevronRight, BarChart3, Clock, Tag, Database, Radar } from "lucide-react";
 import Image from "next/image";
 import TarifasView from "./TarifasView";
 import DetailServices from "./DetailServices";
 import DatabaseView from "./DatabaseView";
+import ScraperView from "./ScraperView";
 
 interface Contact { id:number; Nombre:string; Email:string; Telefono:string; Empresa:string; Notas:string; Activo:boolean; }
 interface Auditoria { id:number; Nombre:string; ContactoID:number; Estado:string; FechaContacto:string; Electricidad:string; Telecom:string; OtrosGastos:string; AhorroTotal:string; Notas:string; [k:string]:any; }
@@ -28,7 +29,7 @@ export default function AdminPanel() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [tarifas,setTarifas]=useState<any>(null);
   const [loading,setLoading]=useState(false);
-  const [page,setPage]=useState<"dashboard"|"contacts"|"detail"|"tarifas"|"database">("dashboard");
+  const [page,setPage]=useState<"dashboard"|"contacts"|"detail"|"tarifas"|"database"|"scraper">("dashboard");
   const [selId,setSelId]=useState<number|null>(null);
   const [selAud,setSelAud]=useState<Auditoria|null>(null);
   const [saving,setSaving]=useState(false);
@@ -93,7 +94,7 @@ export default function AdminPanel() {
 
   const statsByE=ESTADOS.map(e=>({...e,count:contacts.filter(c=>(getAud(c.id)?.Estado||"nuevo")===e.key).length}));
   const totalAhorro=auditorias.reduce((s,a)=>s+(parseFloat(a.AhorroTotal)||0),0);
-  const navItems=[["dashboard","Dashboard",<BarChart3 key="d" className="w-4 h-4"/>],["contacts","Contactos",<Users key="c" className="w-4 h-4"/>],["tarifas","Tarifas",<Tag key="t" className="w-4 h-4"/>],["database","Base de Datos",<Database key="db" className="w-4 h-4"/>]] as const;
+  const navItems=[["dashboard","Dashboard",<BarChart3 key="d" className="w-4 h-4"/>],["contacts","Contactos",<Users key="c" className="w-4 h-4"/>],["tarifas","Tarifas",<Tag key="t" className="w-4 h-4"/>],["scraper","Scraper",<Radar key="s" className="w-4 h-4"/>],["database","Base de Datos",<Database key="db" className="w-4 h-4"/>]] as const;
 
   return(<div className="min-h-screen bg-slate-950 text-white flex">
     <aside className="w-56 border-r border-slate-800/80 bg-slate-900/30 flex flex-col fixed h-full z-40">
@@ -103,7 +104,7 @@ export default function AdminPanel() {
     </aside>
 
     <main className="flex-1 ml-56">
-      <header className="sticky top-0 z-30 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/60 px-8 py-4 flex items-center justify-between"><h1 className="text-lg font-bold">{page==="dashboard"?"Dashboard":page==="tarifas"?"Comparador de Tarifas":page==="database"?"Base de Datos":page==="detail"&&sel?sel.Nombre:"Contactos"}</h1><button onClick={load} disabled={loading} className="p-2 text-slate-600 hover:text-white hover:bg-slate-800 rounded-lg"><RefreshCw className={`w-4 h-4 ${loading?'animate-spin':''}`}/></button></header>
+      <header className="sticky top-0 z-30 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/60 px-8 py-4 flex items-center justify-between"><h1 className="text-lg font-bold">{page==="dashboard"?"Dashboard":page==="tarifas"?"Comparador de Tarifas":page==="database"?"Base de Datos":page==="scraper"?"Scraper de Empresas":page==="detail"&&sel?sel.Nombre:"Contactos"}</h1><button onClick={load} disabled={loading} className="p-2 text-slate-600 hover:text-white hover:bg-slate-800 rounded-lg"><RefreshCw className={`w-4 h-4 ${loading?'animate-spin':''}`}/></button></header>
 
       <div className="p-8">
         {/* DASHBOARD */}
@@ -121,6 +122,9 @@ export default function AdminPanel() {
 
         {/* TARIFAS */}
         {page==="tarifas"&&<TarifasView tarifas={tarifas} onRefresh={load}/>}
+
+        {/* SCRAPER */}
+        {page==="scraper"&&<ScraperView/>}
 
         {/* DATABASE */}
         {page==="database"&&<DatabaseView/>}
