@@ -3,7 +3,7 @@ import { Zap, Smartphone, FileText, TrendingDown } from "lucide-react";
 
 interface Tarifas { electricidad:{proveedor:string;precio_kwh:number;potencia_kw_mes:number;plan:string}[]; telecom:{proveedor:string;precio_mes:number;plan:string;fibra_mb:number;gb_datos:number}[]; lineas_moviles_extra:{proveedor:string;precio_mes:number;plan:string;gb_datos:number}[]; }
 interface ServicioCliente { proveedor_actual:string; plan_actual:string; coste_mensual:string; consumo_kwh?:string; potencia_kw?:string; num_lineas?:string; notas:string; }
-interface Auditoria { id:number; Electricidad:string; Telecom:string; OtrosGastos:string; AhorroTotal:string; [k:string]:unknown; }
+interface Auditoria { id:number; Nombre:string; ContactoID:number; Estado:string; FechaContacto:string; Electricidad:string; Telecom:string; OtrosGastos:string; AhorroTotal:string; Notas:string; [k:string]:any; }
 
 const Input=({label,value,onChange,placeholder,className}:{label:string;value:string;onChange:(v:string)=>void;placeholder?:string;className?:string})=>(
   <div className={className}><label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1 block">{label}</label><input value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-indigo-500"/></div>
