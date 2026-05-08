@@ -39,6 +39,7 @@ model Auditoria {
   otrosGastos   String   @default("") @map("otros_gastos") @db.Text
   ahorroTotal   String   @default("") @map("ahorro_total")
   notas         String   @default("") @db.Text
+  facturaUrl    String   @default("") @map("factura_url")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
@@ -65,6 +66,7 @@ model ScrapedBusiness {
   emailEnviado Boolean   @default(false) @map("email_enviado")
   fechaEmail   DateTime? @map("fecha_email")
   notas        String    @default("") @db.Text
+  facturaUrl   String    @default("") @map("factura_url")
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 

@@ -7,18 +7,12 @@ import DetailServices from "./DetailServices";
 import DatabaseView from "./DatabaseView";
 import ScraperView from "./ScraperView";
 import TrafficView from "./TrafficView";
+import ContactDetailView from "./ContactDetailView";
 
 interface Contact { id:number; Nombre:string; Email:string; Telefono:string; Empresa:string; Notas:string; Activo:boolean; }
 interface Auditoria { id:number; Nombre:string; ContactoID:number; Estado:string; FechaContacto:string; Electricidad:string; Telecom:string; OtrosGastos:string; AhorroTotal:string; Notas:string; [k:string]:any; }
 
-const ESTADOS=[
-  {key:"nuevo",label:"Nuevo",dot:"bg-blue-400",bg:"bg-blue-500/10",text:"text-blue-400",border:"border-blue-500/20"},
-  {key:"contactado",label:"Contactado",dot:"bg-amber-400",bg:"bg-amber-500/10",text:"text-amber-400",border:"border-amber-500/20"},
-  {key:"auditoria",label:"En Auditoría",dot:"bg-purple-400",bg:"bg-purple-500/10",text:"text-purple-400",border:"border-purple-500/20"},
-  {key:"propuesta",label:"Propuesta",dot:"bg-cyan-400",bg:"bg-cyan-500/10",text:"text-cyan-400",border:"border-cyan-500/20"},
-  {key:"ganado",label:"Cerrado ✓",dot:"bg-emerald-400",bg:"bg-emerald-500/10",text:"text-emerald-400",border:"border-emerald-500/20"},
-  {key:"perdido",label:"Perdido",dot:"bg-red-400",bg:"bg-red-500/10",text:"text-red-400",border:"border-red-500/20"},
-];
+export const ESTADOS=[{key:"nuevo",label:"Nuevo Lead",bg:"bg-blue-500/20",text:"text-blue-400",border:"border-blue-500/30",dot:"bg-blue-500"},{key:"contactado",label:"Contactado",bg:"bg-amber-500/20",text:"text-amber-400",border:"border-amber-500/30",dot:"bg-amber-500"},{key:"auditoria",label:"Auditoría en Curso",bg:"bg-purple-500/20",text:"text-purple-400",border:"border-purple-500/30",dot:"bg-purple-500"},{key:"propuesta",label:"Propuesta Enviada",bg:"bg-cyan-500/20",text:"text-cyan-400",border:"border-cyan-500/30",dot:"bg-cyan-500"},{key:"ganado",label:"Cliente Ganado",bg:"bg-emerald-500/20",text:"text-emerald-400",border:"border-emerald-500/30",dot:"bg-emerald-500"},{key:"perdido",label:"Perdido / Descartado",bg:"bg-red-500/20",text:"text-red-400",border:"border-red-500/30",dot:"bg-red-500"}] as const;
 const getE=(k:string)=>ESTADOS.find(e=>e.key===k)||ESTADOS[0];
 const Badge=({estado}:{estado:string})=>{const e=getE(estado);return<span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg border ${e.bg} ${e.text} ${e.border}`}><span className={`w-1.5 h-1.5 rounded-full ${e.dot}`}/>{e.label}</span>;};
 
@@ -166,28 +160,20 @@ export default function AdminPanel() {
         {page==="database"&&<DatabaseView/>}
 
         {/* DETAIL */}
-        {page==="detail"&&sel&&selAud&&(<>
-          <button onClick={()=>{setPage("contacts");setSelId(null);setSelAud(null);}} className="flex items-center gap-1 text-xs text-slate-600 hover:text-white mb-6"><X className="w-3.5 h-3.5"/>Volver</button>
-          <div className="bg-slate-900/60 border border-slate-800/60 rounded-2xl p-5 mb-6 flex flex-col sm:flex-row gap-4 items-start">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-lg font-bold text-indigo-400 shrink-0">{sel.Nombre.charAt(0)}</div>
-            <div className="flex-1 min-w-0"><h2 className="text-lg font-bold">{sel.Nombre}</h2><p className="text-xs text-slate-500">{sel.Email} · {sel.Telefono}{sel.Empresa?` · ${sel.Empresa}`:""}</p>{sel.Notas&&<p className="text-xs text-slate-600 mt-1 italic max-w-lg truncate">&ldquo;{sel.Notas}&rdquo;</p>}</div>
-            <button onClick={()=>delContact(sel.id)} className="p-2 text-slate-700 hover:text-red-400 rounded-lg"><Trash2 className="w-4 h-4"/></button>
-          </div>
-          {/* Estado */}
-          <div className="flex flex-wrap gap-2 mb-6">{ESTADOS.map(e=><button key={e.key} onClick={()=>setSelAud(prev=>prev?{...prev,Estado:e.key}:prev)} className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all ${selAud.Estado===e.key?`${e.bg} ${e.text} ${e.border} ring-1 ring-current`:'bg-slate-900/40 text-slate-600 border-slate-800/60 hover:border-slate-700'}`}>{e.label}</button>)}</div>
-          {/* Mode tabs */}
-          <div className="flex gap-1 mb-6 p-1 bg-slate-900/60 rounded-xl border border-slate-800/60">{([["servicios","Servicios y Ahorro"],["observaciones","Observaciones"]] as const).map(([k,l])=><button key={k} onClick={()=>setDetailMode(k)} className={`px-4 py-2 text-xs font-semibold rounded-lg transition-colors ${detailMode===k?'bg-slate-800 text-white':'text-slate-600 hover:text-white'}`}>{l}</button>)}</div>
-          {detailMode==="servicios"&&<DetailServices aud={selAud} setAud={setSelAud} tarifas={tarifas}/>}
-          {detailMode==="observaciones"&&<div className="bg-slate-900/60 border border-slate-800/60 rounded-2xl p-6"><label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5 block">Observaciones Internas</label><textarea rows={12} value={selAud.Notas} onChange={e=>setSelAud(prev=>prev?{...prev,Notas:e.target.value}:prev)} placeholder="Notas internas..." className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-indigo-500 resize-none"/></div>}
-          {/* Save */}
-          <div className="mt-6 flex items-center justify-between">
-            <div>{selAud.AhorroTotal&&<span className="text-sm text-slate-500">Ahorro: <span className="font-bold text-emerald-400">{parseFloat(selAud.AhorroTotal).toLocaleString("es")}€/año</span></span>}</div>
-            <div className="flex items-center gap-3">
-              {saved&&<span className="text-xs text-emerald-400 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5"/>Guardado</span>}
-              <button onClick={saveAud} disabled={saving} className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-50 shadow-lg shadow-indigo-600/10">{saving?<><RefreshCw className="w-4 h-4 animate-spin"/>Guardando...</>:<><CheckCircle2 className="w-4 h-4"/>Guardar</>}</button>
-            </div>
-          </div>
-        </>)}
+        {page==="detail"&&sel&&selAud&&(
+          <ContactDetailView 
+            sel={sel} 
+            selAud={selAud} 
+            setSelAud={setSelAud} 
+            setPage={setPage} 
+            setSelId={setSelId} 
+            delContact={delContact} 
+            saveAud={saveAud} 
+            saving={saving} 
+            saved={saved} 
+            tarifas={tarifas} 
+          />
+        )}
       </div>
     </main>
   </div>);
