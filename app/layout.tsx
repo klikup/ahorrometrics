@@ -27,6 +27,18 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${geistSans.variable} ${geistMono.variable} antialiased scroll-smooth`}>
       <head>
+        {/* Google Analytics 4 */}
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-24X387WW9J" strategy="afterInteractive" />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-24X387WW9J');
+          `}
+        </Script>
+
+        {/* Google Tag Manager */}
         <Script id="gtm-script" strategy="afterInteractive" dangerouslySetInnerHTML={{
           __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
