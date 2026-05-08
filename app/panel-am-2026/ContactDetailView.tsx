@@ -81,6 +81,8 @@ export default function ContactDetailView({
 
     setAiResult(null);
     setDetailMode("servicios");
+    // Trigger save
+    setTimeout(() => document.getElementById("btn-guardar")?.click(), 100);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,6 +104,8 @@ export default function ContactDetailView({
         setSelAud((prev: any) => ({ ...prev, facturaUrl: data.url }));
         // Auto-analyze with AI
         analyzeInvoice(data.url);
+        // Trigger save
+        setTimeout(() => document.getElementById("btn-guardar")?.click(), 100);
       } else {
         alert("Error al subir la factura");
       }
@@ -122,7 +126,7 @@ export default function ContactDetailView({
         </button>
         <div className="flex items-center gap-3">
           {saved && <span className="text-xs font-bold text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-lg flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Guardado</span>}
-          <button onClick={saveAud} disabled={saving} className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all active:scale-95 disabled:opacity-50">
+          <button id="btn-guardar" onClick={saveAud} disabled={saving} className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all active:scale-95 disabled:opacity-50">
             {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
             Guardar Cambios
           </button>
@@ -310,7 +314,7 @@ export default function ContactDetailView({
                         </div>
                         <div>
                           <p className="text-sm font-bold text-white">Factura Subida</p>
-                          <a href={selAud.facturaUrl} target="_blank" rel="noreferrer" className="text-xs text-indigo-400 hover:underline flex items-center gap-1 mt-0.5">
+                          <a href={selAud.facturaUrl.startsWith("/uploads/") ? `/api/admin${selAud.facturaUrl}` : selAud.facturaUrl} target="_blank" rel="noreferrer" className="text-xs text-indigo-400 hover:underline flex items-center gap-1 mt-0.5">
                             Ver documento original <ExternalLink className="w-3 h-3" />
                           </a>
                         </div>
@@ -324,18 +328,18 @@ export default function ContactDetailView({
                         <button onClick={() => fileInputRef.current?.click()} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white rounded-lg transition-colors">
                           {uploading ? "Sustituyendo..." : "Sustituir"}
                         </button>
-                        <button onClick={() => { setSelAud((prev: any) => ({...prev, facturaUrl: ""})); setAiResult(null); }} className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-xs font-bold text-red-400 border border-red-500/20 rounded-lg transition-colors">
+                        <button onClick={() => { setSelAud((prev: any) => ({...prev, facturaUrl: ""})); setTimeout(() => document.getElementById("btn-guardar")?.click(), 100); setAiResult(null); }} className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-xs font-bold text-red-400 border border-red-500/20 rounded-lg transition-colors">
                           Eliminar
                         </button>
                       </div>
                     </div>
                     <div className="w-full h-[600px] bg-white rounded-2xl overflow-hidden border border-slate-800">
-                      {selAud.facturaUrl.endsWith('.pdf') ? (
-                        <iframe src={selAud.facturaUrl} className="w-full h-full" frameBorder="0" />
+                      {selAud.facturaUrl.toLowerCase().endsWith('.pdf') ? (
+                        <iframe src={selAud.facturaUrl.startsWith("/uploads/") ? `/api/admin${selAud.facturaUrl}` : selAud.facturaUrl} className="w-full h-full" frameBorder="0" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-slate-100 overflow-auto">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={selAud.facturaUrl} alt="Factura" className="max-w-full object-contain" />
+                          <img src={selAud.facturaUrl.startsWith("/uploads/") ? `/api/admin${selAud.facturaUrl}` : selAud.facturaUrl} alt="Factura" className="max-w-full object-contain" />
                         </div>
                       )}
                     </div>
