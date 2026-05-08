@@ -23,6 +23,18 @@ export default function ContactDetailView({
   const [aiError, setAiError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [activeInvoiceIndex, setActiveInvoiceIndex] = useState(0);
+
+  let facturas: string[] = [];
+  if (selAud.facturaUrl) {
+    if (selAud.facturaUrl.startsWith("[")) {
+      try { facturas = JSON.parse(selAud.facturaUrl); } catch {}
+    } else {
+      facturas = [selAud.facturaUrl];
+    }
+  }
+  const activeInvoiceUrl = facturas[activeInvoiceIndex] || "";
+
   const analyzeInvoice = async (fileUrl: string) => {
     setAnalyzing(true);
     setAiError("");
@@ -101,7 +113,9 @@ export default function ContactDetailView({
       const data = await res.json();
 
       if (data.success && data.url) {
-        setSelAud((prev: any) => ({ ...prev, facturaUrl: data.url }));
+        const newFacturas = [...facturas, data.url];
+        setSelAud((prev: any) => ({ ...prev, facturaUrl: JSON.stringify(newFacturas) }));
+        setActiveInvoiceIndex(newFacturas.length - 1);
         // Auto-analyze with AI
         analyzeInvoice(data.url);
         // Trigger save
@@ -115,6 +129,15 @@ export default function ContactDetailView({
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  };
+
+  const handleDeleteInvoice = (idx: number) => {
+    if (!confirm("¿Eliminar esta factura permanentemente?")) return;
+    const newFacturas = facturas.filter((_, i) => i !== idx);
+    setSelAud((prev: any) => ({ ...prev, facturaUrl: newFacturas.length ? JSON.stringify(newFacturas) : "" }));
+    setActiveInvoiceIndex(Math.max(0, idx - 1));
+    setTimeout(() => document.getElementById("btn-guardar")?.click(), 100);
+    setAiResult(null);
   };
 
   return (
@@ -230,8 +253,8 @@ export default function ContactDetailView({
                   <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 flex items-center gap-3">
                     <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
                     <p className="text-xs text-red-400">{aiError}</p>
-                    {selAud.facturaUrl && (
-                      <button onClick={() => analyzeInvoice(selAud.facturaUrl)} className="ml-auto px-3 py-1.5 bg-red-500/20 text-red-300 text-xs font-bold rounded-lg hover:bg-red-500/30">
+                    {activeInvoiceUrl && (
+                      <button onClick={() => analyzeInvoice(activeInvoiceUrl)} className="ml-auto px-3 py-1.5 bg-red-500/20 text-red-300 text-xs font-bold rounded-lg hover:bg-red-500/30">
                         Reintentar
                       </button>
                     )}
@@ -292,7 +315,7 @@ export default function ContactDetailView({
                   </div>
                 )}
 
-                {!selAud.facturaUrl ? (
+                {!facturas.length ? (
                   <div className="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-900/50 hover:bg-indigo-500/5 rounded-3xl p-12 transition-colors flex flex-col items-center justify-center text-center cursor-pointer group" onClick={() => fileInputRef.current?.click()}>
                     <div className="w-20 h-20 bg-slate-800 group-hover:bg-indigo-500/20 rounded-full flex items-center justify-center mb-6 transition-colors">
                       {uploading ? <RefreshCw className="w-8 h-8 text-indigo-400 animate-spin" /> : <UploadCloud className="w-8 h-8 text-slate-400 group-hover:text-indigo-400 transition-colors" />}
@@ -307,42 +330,62 @@ export default function ContactDetailView({
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-slate-900 border border-slate-800 p-4 rounded-2xl gap-3">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-indigo-500/20 rounded-xl flex items-center justify-center shrink-0">
-                          <FileText className="w-6 h-6 text-indigo-400" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-white">Factura Subida</p>
-                          <a href={selAud.facturaUrl.startsWith("/uploads/") ? `/api/admin${selAud.facturaUrl}` : selAud.facturaUrl} target="_blank" rel="noreferrer" className="text-xs text-indigo-400 hover:underline flex items-center gap-1 mt-0.5">
-                            Ver documento original <ExternalLink className="w-3 h-3" />
-                          </a>
-                        </div>
+                    {/* FACTURAS LIST HEADER */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-slate-900 border border-slate-800 p-4 rounded-2xl gap-4">
+                      <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
+                        {facturas.map((url, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => { setActiveInvoiceIndex(idx); setAiResult(null); }}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeInvoiceIndex === idx ? 'bg-indigo-600 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'}`}
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                            Factura {idx + 1}
+                          </button>
+                        ))}
                       </div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <button onClick={() => analyzeInvoice(selAud.facturaUrl)} disabled={analyzing} className="flex items-center gap-1.5 px-4 py-2 bg-purple-500/15 hover:bg-purple-500/25 text-xs font-bold text-purple-400 border border-purple-500/30 rounded-lg transition-colors">
-                          {analyzing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                          {analyzing ? "Analizando..." : "Re-analizar con IA"}
-                        </button>
+                      <div className="flex shrink-0">
                         <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".pdf,image/*" />
-                        <button onClick={() => fileInputRef.current?.click()} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white rounded-lg transition-colors">
-                          {uploading ? "Sustituyendo..." : "Sustituir"}
-                        </button>
-                        <button onClick={() => { setSelAud((prev: any) => ({...prev, facturaUrl: ""})); setTimeout(() => document.getElementById("btn-guardar")?.click(), 100); setAiResult(null); }} className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-xs font-bold text-red-400 border border-red-500/20 rounded-lg transition-colors">
-                          Eliminar
+                        <button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white rounded-xl transition-colors whitespace-nowrap">
+                          {uploading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
+                          {uploading ? "Subiendo..." : "Subir Otra Factura"}
                         </button>
                       </div>
                     </div>
-                    <div className="w-full h-[600px] bg-white rounded-2xl overflow-hidden border border-slate-800">
-                      {selAud.facturaUrl.toLowerCase().endsWith('.pdf') ? (
-                        <iframe src={selAud.facturaUrl.startsWith("/uploads/") ? `/api/admin${selAud.facturaUrl}` : selAud.facturaUrl} className="w-full h-full" frameBorder="0" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-slate-100 overflow-auto">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={selAud.facturaUrl.startsWith("/uploads/") ? `/api/admin${selAud.facturaUrl}` : selAud.facturaUrl} alt="Factura" className="max-w-full object-contain" />
+
+                    {/* ACTIVE INVOICE */}
+                    {activeInvoiceUrl && (
+                      <div className="space-y-4">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-slate-900/50 border border-slate-800/50 p-4 rounded-2xl gap-3">
+                          <div>
+                            <p className="text-sm font-bold text-white">Visualizando Factura {activeInvoiceIndex + 1}</p>
+                            <a href={activeInvoiceUrl.startsWith("/uploads/") ? `/api/admin${activeInvoiceUrl}` : activeInvoiceUrl} target="_blank" rel="noreferrer" className="text-xs text-indigo-400 hover:underline flex items-center gap-1 mt-0.5">
+                              Ver documento original en nueva pestaña <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <button onClick={() => analyzeInvoice(activeInvoiceUrl)} disabled={analyzing} className="flex items-center gap-1.5 px-4 py-2 bg-purple-500/15 hover:bg-purple-500/25 text-xs font-bold text-purple-400 border border-purple-500/30 rounded-lg transition-colors">
+                              {analyzing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                              {analyzing ? "Analizando..." : "Extraer datos con IA"}
+                            </button>
+                            <button onClick={() => handleDeleteInvoice(activeInvoiceIndex)} className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-xs font-bold text-red-400 border border-red-500/20 rounded-lg transition-colors">
+                              Eliminar Factura {activeInvoiceIndex + 1}
+                            </button>
+                          </div>
                         </div>
-                      )}
-                    </div>
+
+                        <div className="w-full h-[600px] bg-white rounded-2xl overflow-hidden border border-slate-800">
+                          {activeInvoiceUrl.toLowerCase().endsWith('.pdf') ? (
+                            <iframe src={activeInvoiceUrl.startsWith("/uploads/") ? `/api/admin${activeInvoiceUrl}` : activeInvoiceUrl} className="w-full h-full" frameBorder="0" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-slate-100 overflow-auto">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={activeInvoiceUrl.startsWith("/uploads/") ? `/api/admin${activeInvoiceUrl}` : activeInvoiceUrl} alt="Factura" className="max-w-full object-contain" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
