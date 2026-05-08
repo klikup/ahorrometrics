@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     await writeFile(filepath, buffer);
     
     // Return the public URL
-    return NextResponse.json({ success: true, url: `/uploads/${filename}` });
+    return NextResponse.json({ success: true, url: `/api/admin/uploads/${filename}` });
   } catch (e: any) {
     return NextResponse.json({ success: false, error: e.message }, { status: 500 });
   }

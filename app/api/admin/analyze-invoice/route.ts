@@ -37,8 +37,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "GEMINI_API_KEY not configured" }, { status: 500 });
     }
 
-    // Read the file from public directory
-    const filePath = path.join(process.cwd(), "public", fileUrl);
+    // Read the file from public/uploads directory
+    // fileUrl can be /api/admin/uploads/filename or /uploads/filename
+    const filename = fileUrl.split("/").pop();
+    const filePath = path.join(process.cwd(), "public", "uploads", filename);
     const fileBuffer = await readFile(filePath);
     const base64Data = fileBuffer.toString("base64");
 
