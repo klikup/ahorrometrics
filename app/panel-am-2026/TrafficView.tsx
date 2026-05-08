@@ -29,7 +29,6 @@ export default function TrafficView() {
           frameBorder="0" 
           style={{ border: 0 }} 
           allowFullScreen 
-          sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
         />
       </div>
     </div>
