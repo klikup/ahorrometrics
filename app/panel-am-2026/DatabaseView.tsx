@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { RefreshCw, Database, Table2, Hash, User, Mail, Phone, Building2, FileText, Calendar, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { RefreshCw, Database, Table2, Hash, User, Mail, Phone, Building2, FileText, Calendar, CheckCircle2, XCircle, AlertCircle, Trash2 } from "lucide-react";
 
 interface DbStats {
   contacts: number;
@@ -65,7 +65,28 @@ export default function DatabaseView() {
     }
   };
 
+  const [clearing, setClearing] = useState(false);
+
   useEffect(() => { fetchData(); }, []);
+
+  const clearDatabase = async () => {
+    if (!confirm("⚠️ ¡ADVERTENCIA EXTREMA!\n\n¿Estás completamente seguro de que quieres ELIMINAR TODOS LOS DATOS de todas las tablas?\n\nEsta acción es irreversible y los datos reales se perderán para siempre.")) return;
+    
+    // Double confirmation for extreme safety
+    if (!confirm("¿ÚLTIMA CONFIRMACIÓN?\nPresiona OK para borrar todos los datos definitivamente.")) return;
+
+    setClearing(true);
+    try {
+      const res = await fetch("/api/admin/database/clear", { method: "POST" });
+      if (!res.ok) throw new Error("Error al limpiar la base de datos");
+      alert("¡Base de datos limpiada con éxito! Ya puedes empezar a recibir datos reales.");
+      fetchData(); // Refresh to show 0
+    } catch {
+      alert("Hubo un error al intentar limpiar la base de datos.");
+    } finally {
+      setClearing(false);
+    }
+  };
 
   const formatDate = (iso: string) => {
     if (!iso) return "—";
@@ -176,7 +197,15 @@ export default function DatabaseView() {
           auditorias ({data.tables.auditorias.length})
         </button>
 
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <button 
+            onClick={clearDatabase} 
+            disabled={clearing}
+            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-colors border border-red-500/20"
+          >
+            {clearing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+            {clearing ? "Borrando..." : "Limpiar BD"}
+          </button>
           <button onClick={fetchData} className="p-2.5 text-slate-600 hover:text-white rounded-lg hover:bg-slate-800 transition-colors">
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
           </button>
