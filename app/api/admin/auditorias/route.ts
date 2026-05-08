@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
         OtrosGastos: a.otrosGastos,
         AhorroTotal: a.ahorroTotal,
         Notas: a.notas,
+        facturaUrl: a.facturaUrl,
       }));
 
       return NextResponse.json({ results });
@@ -81,6 +82,7 @@ export async function POST(request: NextRequest) {
         otrosGastos: body.OtrosGastos || "",
         ahorroTotal: body.AhorroTotal || "",
         notas: body.Notas || "",
+        facturaUrl: body.facturaUrl || "",
       },
     });
 
@@ -95,6 +97,7 @@ export async function POST(request: NextRequest) {
       OtrosGastos: created.otrosGastos,
       AhorroTotal: created.ahorroTotal,
       Notas: created.notas,
+      facturaUrl: created.facturaUrl,
     });
   } catch (error) {
     console.error("Error creating auditoria:", error);
@@ -120,6 +123,7 @@ export async function PATCH(request: NextRequest) {
     if (fields.OtrosGastos !== undefined) updateData.otrosGastos = fields.OtrosGastos;
     if (fields.AhorroTotal !== undefined) updateData.ahorroTotal = fields.AhorroTotal;
     if (fields.Notas !== undefined) updateData.notas = fields.Notas;
+    if (fields.facturaUrl !== undefined) updateData.facturaUrl = fields.facturaUrl;
 
     const updated = await prisma.auditoria.update({
       where: { id },
@@ -137,6 +141,7 @@ export async function PATCH(request: NextRequest) {
       OtrosGastos: updated.otrosGastos,
       AhorroTotal: updated.ahorroTotal,
       Notas: updated.notas,
+      facturaUrl: updated.facturaUrl,
     });
   } catch (error) {
     console.error("Error updating auditoria:", error);
