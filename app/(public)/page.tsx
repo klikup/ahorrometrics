@@ -62,6 +62,13 @@ export default function Home() {
       if (!res.ok) {
         setServerError(data.error || "Ha ocurrido un error. Inténtalo de nuevo.");
       } else {
+        // Google Ads Conversion – SUBMIT_LEAD_FORM (3)
+        if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
+          (window as any).gtag("event", "conversion_event_submit_lead_form_2", {
+            event_callback: () => {},
+            event_timeout: 2000,
+          });
+        }
         setSubmitted(true);
       }
     } catch {
